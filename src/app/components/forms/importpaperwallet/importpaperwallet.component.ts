@@ -20,6 +20,7 @@ import { QRCodeModule } from 'angular2-qrcode';
 export class ImportpaperwalletComponent implements OnInit {
   label:string = "";
   privateKey:string = "";
+  walletPassword: string = "";
   showDialogFooter:boolean = false;
   errorMessage: string = "";
   keypair: any;
@@ -33,11 +34,14 @@ export class ImportpaperwalletComponent implements OnInit {
 
   doSubmit() {
 
-    if((this.label.length == 0) || (this.privateKey.length == 0)){
-      this.errorMessage = "Both account Label and Private Key must be entered.";
+    if((this.label.length == 0) || (this.privateKey.length == 0) || (this.walletPassword.length == 0)){
+      this.errorMessage = "All fields must be entered.";
       this.showDialogFooter = true;
+      return;
+    } else if(!this.walletService.checkWalletPasswordHash(this.walletPassword)){
+      this.errorMessage = "You entered an invalid password.";
+      return;
     } else {
-
       this.errorMessage = "";
       this.showDialogFooter = false;
       try {        
@@ -56,6 +60,7 @@ export class ImportpaperwalletComponent implements OnInit {
           this.errorMessage = "Paper Wallet already Imported.";
           this.label = "";
           this.privateKey = "";
+          this.walletPassword = "";
           this.showDialogFooter = true;
           return;
         }
@@ -73,10 +78,12 @@ export class ImportpaperwalletComponent implements OnInit {
         lastTxLedger: 0
       };
       this.walletService.addAccount(walletAccount);
+      this.walletService.encryptAllKeys(this.walletPassword);
       this.logger.debug("### Account Added with Paper Wallet: " + walletAccount.accountID);
       this.errorMessage = "Paper Wallet Imported Successfully.";
       this.label = "";
       this.privateKey = "";
+      this.walletPassword = "";
       this.showDialogFooter = true;
     }
   }
