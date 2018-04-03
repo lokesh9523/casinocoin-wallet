@@ -65,7 +65,19 @@ export class ImportpaperwalletComponent implements OnInit {
         }
       }
 
-      let newKeyPair:LokiKey = this.casinocoinService.generateNewKeyPair();
+      //let newKeyPair:LokiKey = this.casinocoinService.generateNewKeyPair();
+      let newKeyPair: LokiKey = { 
+        privateKey: "", 
+        publicKey: "", 
+        accountID: "", 
+        secret: "", 
+        encrypted: false
+    };
+    newKeyPair.secret = this.privateKey.trim();
+    newKeyPair.privateKey = this.keypair.privateKey;
+    newKeyPair.publicKey = this.keypair.publicKey;
+    newKeyPair.accountID = this.address;
+
       this.walletService.addKey(newKeyPair);
       let walletAccount: LokiAccount = {
         accountID: this.address, 
