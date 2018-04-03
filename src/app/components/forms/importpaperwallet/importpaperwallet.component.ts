@@ -33,7 +33,6 @@ export class ImportpaperwalletComponent implements OnInit {
   }
 
   doSubmit() {
-
     if((this.label.length == 0) || (this.privateKey.length == 0) || (this.walletPassword.length == 0)){
       this.errorMessage = "All fields must be entered.";
       this.showDialogFooter = true;
@@ -67,7 +66,8 @@ export class ImportpaperwalletComponent implements OnInit {
       }
 
       let newKeyPair:LokiKey = this.casinocoinService.generateNewKeyPair();
-      this.walletService.addKey(newKeyPair); let walletAccount: LokiAccount = {
+      this.walletService.addKey(newKeyPair);
+      let walletAccount: LokiAccount = {
         accountID: this.address, 
         balance: "0", 
         lastSequence: 0, 
@@ -78,7 +78,11 @@ export class ImportpaperwalletComponent implements OnInit {
         lastTxLedger: 0
       };
       this.walletService.addAccount(walletAccount);
-      this.walletService.encryptAllKeys(this.walletPassword);
+      this.walletService.encryptAllKeys(this.walletPassword).subscribe( result => {
+          if(result == AppConstants.KEY_FINISHED){
+            this.logger.debug("### Account Created: " + walletAccount.accountID);
+          }
+        });
       this.logger.debug("### Account Added with Paper Wallet: " + walletAccount.accountID);
       this.errorMessage = "Paper Wallet Imported Successfully.";
       this.label = "";
