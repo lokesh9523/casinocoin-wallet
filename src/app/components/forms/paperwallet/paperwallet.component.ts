@@ -26,6 +26,7 @@ export class PaperwalletComponent implements OnInit {
     keySet: any[] = [];
     showInstructions: boolean = false;
     address_context_menu: ElectronMenu;
+    key_context_menu: ElectronMenu;
     selectedAddress: string;
 
     constructor(private winRef: WindowRef,
@@ -45,11 +46,28 @@ export class PaperwalletComponent implements OnInit {
                 }
             }
         ];
+        let key_context_menu_template = [
+            {
+                label: 'Copy Key',
+                click(menuItem, browserWindow, event) {
+                    browserWindow.webContents.send('key-context-menu-event', 'copy-key');
+                }
+            }
+        ];
+
         this.address_context_menu = this.electronService.remote.Menu.buildFromTemplate(address_context_menu_template);
         this.electronService.ipcRenderer.on('address-context-menu-event', (event, arg) => {
             this.logger.debug("### Paper Wallet Menu Event: " + arg);
             if (arg == 'copy-address')
                 this.copyAddress();
+            else
+                this.logger.debug("### Context menu not implemented: " + arg);
+        });
+        this.key_context_menu = this.electronService.remote.Menu.buildFromTemplate(key_context_menu_template);
+        this.electronService.ipcRenderer.on('key-context-menu-event', (event, arg) => {
+            this.logger.debug("### Paper Wallet Menu Event: " + arg);
+            if (arg == 'copy-key')
+                this.copykey();
             else
                 this.logger.debug("### Context menu not implemented: " + arg);
         });
@@ -62,12 +80,19 @@ export class PaperwalletComponent implements OnInit {
             this.electronService.clipboard.writeText("");
         }
     }
-    
+    copykey() {
+        if (this.selectedAddress) {
+            this.electronService.clipboard.writeText(this.selectedAddress);
+        } else {
+            this.electronService.clipboard.writeText("");
+        }
+    }
+
     showCreateAddress() {
 
         let newKeyPair = this.casinocoinService.generateNewKeyPair();
         // console.log(JSON.stringify(newKeyPair));
-        
+
         // let seed = keypairs.generateSeed();
         // let keypair = keypairs.deriveKeypair(seed);
         // let address = keypairs.deriveAddress(keypair.publicKey);
@@ -86,7 +111,7 @@ export class PaperwalletComponent implements OnInit {
 
     onPrivateContextMenu() {
         this.selectedAddress = this.newSecretKey;
-        this.address_context_menu.popup(this.electronService.remote.getCurrentWindow());
+        this.key_context_menu.popup(this.electronService.remote.getCurrentWindow());
     }
 
     print(): void {
