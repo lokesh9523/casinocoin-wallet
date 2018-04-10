@@ -7,6 +7,7 @@ import * as os from 'os';
 
 // this is required to check if the app is running in development mode. 
 import * as isDev from 'electron-is-dev';
+import * as notification from 'electron-notifications';
 
 let win, serve;
 const args = process.argv.slice(1);
@@ -200,6 +201,18 @@ function createWindow() {
     }
   });
 
+  //push notification using electron-notification
+  ipcMain.on('push-notification', (event, arg) => { 
+    const notify = notification.notify(arg.title, {
+        message: arg.body,
+        icon: path.join(__dirname, 'assets/brand/casinocoin-icon-256x256.png'),
+        buttons: ['Ok']
+    });
+    notify.on('buttonClicked', (text, buttonIndex, options) => {
+      notify.close();
+    });
+  });
+
   // Emitted when the window is closed.
   win.on('close', (e) => {
     // console.log("close - showExitPrompt: " + showExitPrompt + " exitFromLogin: " + globalTS.vars.exitFromLogin + " savedBeforeQuit: " + savedBeforeQuit);
@@ -221,7 +234,9 @@ function createWindow() {
           }, function (response) {
               if (response === 0) { // Runs the following if 'Yes' is clicked
                 // on next win.on('close') the app will be finally closed
-                win.webContents.send('action', 'disconnect-quit-wallet');
+                if(!globalTS.vars.inLogin){
+                  win.webContents.send('action', 'disconnect-quit-wallet');
+                }  
                 showExitPrompt = false;
                 win.close();
               }
